@@ -8,10 +8,6 @@ import { AnalyticsEvents } from '@/lib/analytics/events'
 import { captureServerAnalyticsEvent } from '@/lib/analytics/server'
 import type { Subscription } from '@/lib/types'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil'
-})
-
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 const relevantEvents = new Set([
@@ -193,6 +189,10 @@ async function captureSubscriptionLifecycleEvent(input: {
 }
 
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-04-30.basil'
+  })
+
   try {
     console.log('🌐 Incoming Webhook Request:', {
       method: req.method,
