@@ -283,11 +283,6 @@ export async function POST(req: Request) {
         // ── Credit bundle purchase (one-time payment) ──────────────────────
         if (session.mode === 'payment') {
           const userId = session.metadata?.userId
-          const priceId = session.metadata && 'credits' in session.metadata
-            ? Object.keys(PRICE_ID_TO_CREDITS).find(
-                (pid) => session.line_items?.data?.[0]?.price?.id === pid
-              )
-            : undefined
 
           // Retrieve line items to get the price ID (not expanded by default)
           const lineItems = await (async () => {

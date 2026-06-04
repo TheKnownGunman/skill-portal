@@ -94,6 +94,21 @@ export const createCreditPurchaseSession = async (
 };
 
 // ---------------------------------------------------------------------------
+// Legacy compatibility export — used by checkout-form.tsx.
+// Wraps createCreditPurchaseSession so existing import paths keep working
+// until the checkout form is migrated to the new credits UI.
+// ---------------------------------------------------------------------------
+
+export const postStripeSession = async ({
+  priceId,
+}: {
+  priceId: string
+  includeTrial?: boolean  // no longer used in credits model, kept for compat
+}): Promise<StripeSessionResult> => {
+  return createCreditPurchaseSession(priceId)
+}
+
+// ---------------------------------------------------------------------------
 // Billing portal (manage payment methods, download invoices)
 // ---------------------------------------------------------------------------
 
