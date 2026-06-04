@@ -3,6 +3,8 @@
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { manageSubscriptionStatusChange } from '@/utils/actions/stripe/actions'
+import { addCredits } from '@/utils/actions/credits/actions'
+import { PRICE_ID_TO_CREDITS } from '@/lib/stripe/credit-bundles'
 import { createServiceClient } from '@/utils/supabase/server'
 import { AnalyticsEvents } from '@/lib/analytics/events'
 import { captureServerAnalyticsEvent } from '@/lib/analytics/server'
@@ -11,12 +13,15 @@ import type { Subscription } from '@/lib/types'
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 const relevantEvents = new Set([
+  // Credit purchases (one-time payments)
   'checkout.session.completed',
+  'payment_intent.payment_failed',
+  // Legacy subscription events (kept for backward compat)
   'invoice.paid',
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
-  'customer.deleted'
+  'customer.deleted',
 ]);
 
 type ServiceSupabaseClient = Awaited<ReturnType<typeof createServiceClient>>;
@@ -274,8 +279,62 @@ export async function POST(req: Request) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
+
+        // ── Credit bundle purchase (one-time payment) ──────────────────────
+        if (session.mode === 'payment') {
+          const userId = session.metadata?.userId
+          const priceId = session.metadata && 'credits' in session.metadata
+            ? Object.keys(PRICE_ID_TO_CREDITS).find(
+                (pid) => session.line_items?.data?.[0]?.price?.id === pid
+              )
+            : undefined
+
+          // Retrieve line items to get the price ID (not expanded by default)
+          const lineItems = await (async () => {
+            try {
+              const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-04-30.basil' })
+              return await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 })
+            } catch {
+              return { data: [] }
+            }
+          })()
+
+          const purchasedPriceId = lineItems.data[0]?.price?.id
+          const creditsToAdd = purchasedPriceId ? (PRICE_ID_TO_CREDITS[purchasedPriceId] ?? 0) : 0
+
+          if (userId && creditsToAdd > 0) {
+            await addCredits(
+              userId,
+              creditsToAdd,
+              'purchase',
+              session.payment_intent as string,
+              `Purchased ${creditsToAdd} credits`
+            )
+
+            await captureServerAnalyticsEvent({
+              distinctId: userId,
+              event: AnalyticsEvents.CheckoutCompleted,
+              properties: {
+                credits_purchased: creditsToAdd,
+                price_id: purchasedPriceId,
+                payment_intent: session.payment_intent,
+              },
+            })
+
+            console.log('✅ Credits added after purchase:', { userId, creditsToAdd, priceId: purchasedPriceId })
+          } else {
+            console.warn('⚠️ Credit purchase webhook: could not resolve userId or credit amount', {
+              userId,
+              purchasedPriceId,
+              creditsToAdd,
+              sessionId: session.id,
+            })
+          }
+          break
+        }
+
+        // ── Legacy subscription checkout ───────────────────────────────────
         const subscriptionId = getSubscriptionId(session.subscription as string | Stripe.Subscription | null);
-        
         if (session.mode === 'subscription' && subscriptionId) {
           const subscriptionData = await handleSubscriptionChange(
             getCustomerId(session.customer as string | Stripe.Customer | Stripe.DeletedCustomer | null),

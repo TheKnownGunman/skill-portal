@@ -179,6 +179,31 @@ export interface Subscription {
   updated_at: string;
 }
 
+// ---------------------------------------------------------------------------
+// Credits system
+// ---------------------------------------------------------------------------
+
+export type CreditLedgerAction =
+  | 'purchase'
+  | 'welcome_bonus'
+  | 'tailored_resume'
+  | 'cover_letter'
+  | 'ai_chat'
+  | 'ats_score'
+  | 'interview_prep'
+  | 'admin_adjustment'
+  | 'refund'
+
+export interface CreditLedgerEntry {
+  id: string;
+  user_id: string;
+  amount: number;           // positive = credit, negative = debit
+  action: CreditLedgerAction;
+  reference_id: string | null;
+  description: string | null;
+  created_at: string;
+}
+
 export const AI_PROVIDERS = {
   OPENAI: 'openai',
   // AZURE: 'azure',
