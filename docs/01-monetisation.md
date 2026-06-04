@@ -78,6 +78,21 @@ WHERE user_id = $1;
 
 Never store a balance field directly — the ledger is the source of truth and is auditable.
 
+**How the admin will access the  entire credit ledger**
+```sql
+CREATE POLICY admin_full_access
+ON credit_ledger
+FOR ALL
+USING (
+  EXISTS (
+    SELECT 1
+    FROM profiles
+    WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+  )
+);
+```
+
 ### Remove or repurpose `subscriptions` table
 
 The existing `subscriptions` table can remain for users who were on the old plan but is no longer the primary gating mechanism. Feature access is gated by credit balance instead.
