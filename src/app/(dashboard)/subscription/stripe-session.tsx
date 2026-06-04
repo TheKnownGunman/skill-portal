@@ -3,207 +3,133 @@
 import { Stripe } from "stripe";
 import { checkAuth } from "@/app/auth/login/actions";
 import { createOrRetrieveCustomer } from "@/utils/actions/stripe/actions";
-import {
-    buildCheckoutIdempotencyKey,
-    buildCheckoutSessionMetadata,
-    buildSubscriptionMetadata,
-    isBlockingCheckoutSubscription,
-    isMatchingOpenCheckoutSession,
-} from "@/lib/stripe/checkout-guard";
+import { CREDIT_BUNDLES } from "@/lib/stripe/credit-bundles";
 
-const apiKey = process.env.STRIPE_SECRET_KEY as string;
-const stripe = new Stripe(apiKey, {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getStripe(): Stripe {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not configured.");
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2025-04-30.basil",
-});
-
-interface NewSessionOptions {
-    priceId: string;
-    includeTrial?: boolean;
+  });
 }
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 export type StripeSessionResult =
-    | { kind: "checkout"; clientSecret: string }
-    | { kind: "portal"; url: string; reason: "existing_subscription" }
-    | { kind: "error"; message: string };
+  | { kind: "checkout"; clientSecret: string }
+  | { kind: "error"; message: string };
 
-async function createBillingPortalSession(customerId: string) {
-    const returnUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/subscription`;
+// ---------------------------------------------------------------------------
+// Credit purchase checkout session
+// ---------------------------------------------------------------------------
 
-    return stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: returnUrl,
+/**
+ * Creates a one-time payment Stripe Checkout session for a credit bundle.
+ * The webhook (checkout.session.completed) adds credits once payment succeeds.
+ *
+ * @param priceId — One of the NEXT_PUBLIC_STRIPE_CREDITS_* price IDs
+ */
+export const createCreditPurchaseSession = async (
+  priceId: string
+): Promise<StripeSessionResult> => {
+  const { authenticated, user } = await checkAuth();
+
+  if (!authenticated || !user?.id || !user?.email) {
+    return { kind: "error", message: "You must be signed in to purchase credits." };
+  }
+
+  // Validate the price ID belongs to a known bundle
+  const bundle = CREDIT_BUNDLES.find((b) => b.priceId === priceId);
+  if (!bundle) {
+    return {
+      kind: "error",
+      message: "Unknown credit bundle. Please choose a valid package.",
+    };
+  }
+
+  try {
+    const stripe = getStripe();
+
+    const customerId = await createOrRetrieveCustomer({
+      uuid: user.id,
+      email: user.email,
     });
+
+    const returnUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/credits/success?session_id={CHECKOUT_SESSION_ID}`;
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      ui_mode: "embedded",
+      mode: "payment",                       // one-time payment, not subscription
+      line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true,
+      return_url: returnUrl,
+      client_reference_id: user.id,
+      metadata: {
+        userId: user.id,
+        bundleId: bundle.id,
+        credits: bundle.credits.toString(),
+      },
+    });
+
+    if (!session.client_secret) {
+      throw new Error("Failed to create Stripe session — no client secret returned.");
+    }
+
+    return { kind: "checkout", clientSecret: session.client_secret };
+  } catch (error) {
+    console.error("Error creating credit purchase session:", error);
+    return {
+      kind: "error",
+      message: error instanceof Error ? error.message : "Failed to create checkout session.",
+    };
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Legacy compatibility export — used by checkout-form.tsx.
+// Wraps createCreditPurchaseSession so existing import paths keep working
+// until the checkout form is migrated to the new credits UI.
+// ---------------------------------------------------------------------------
+
+export const postStripeSession = async ({
+  priceId,
+}: {
+  priceId: string
+  includeTrial?: boolean  // no longer used in credits model, kept for compat
+}): Promise<StripeSessionResult> => {
+  return createCreditPurchaseSession(priceId)
 }
 
-// Function to create a Stripe Checkout Session
-export const postStripeSession = async ({ priceId, includeTrial = false }: NewSessionOptions): Promise<StripeSessionResult> => {
-    // Check if user is authenticated
-    const { authenticated, user } = await checkAuth();
-    
-    if (!authenticated || !user?.id || !user?.email) {
-        throw new Error('User must be authenticated to create a checkout session');
-    }
+// ---------------------------------------------------------------------------
+// Billing portal (manage payment methods, download invoices)
+// ---------------------------------------------------------------------------
 
-    try {
-        const proPriceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-        if (!proPriceId) {
-            throw new Error('NEXT_PUBLIC_STRIPE_PRO_PRICE_ID is not configured');
-        }
+export const createPortalSession = async (): Promise<{ url: string }> => {
+  const { authenticated, user } = await checkAuth();
 
-        if (priceId !== proPriceId) {
-            return {
-                kind: "error",
-                message: "This checkout link is no longer valid. Please restart checkout from the subscription page.",
-            };
-        }
+  if (!authenticated || !user?.id || !user?.email) {
+    throw new Error("User must be authenticated to access the billing portal.");
+  }
 
-        // Get or create Stripe customer
-        const customerId = await createOrRetrieveCustomer({
-            uuid: user.id,
-            email: user.email
-        });
+  const stripe = getStripe();
 
-        const existingSubscriptions = await stripe.subscriptions.list({
-            customer: customerId,
-            price: priceId,
-            status: "all",
-            limit: 10,
-        });
+  const customerId = await createOrRetrieveCustomer({
+    uuid: user.id,
+    email: user.email,
+  });
 
-        const blockingSubscription = existingSubscriptions.data.find((subscription) =>
-            isBlockingCheckoutSubscription(subscription.status)
-        );
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/credits`,
+  });
 
-        if (blockingSubscription) {
-            console.log('🛑 Existing Stripe subscription found before checkout', {
-                userId: user.id,
-                customerId,
-                subscriptionId: blockingSubscription.id,
-                status: blockingSubscription.status,
-                priceId,
-            });
-
-            const portalSession = await createBillingPortalSession(customerId);
-            return {
-                kind: "portal",
-                url: portalSession.url,
-                reason: "existing_subscription",
-            };
-        }
-
-        const checkoutMetadata = buildCheckoutSessionMetadata({
-            userId: user.id,
-            priceId,
-            includeTrial,
-        });
-
-        const openSessions = await stripe.checkout.sessions.list({
-            customer: customerId,
-            status: "open",
-            limit: 10,
-        });
-
-        const reusableSession = openSessions.data.find((session) =>
-            isMatchingOpenCheckoutSession(session, checkoutMetadata)
-        );
-
-        if (reusableSession?.client_secret) {
-            console.log('♻️ Reusing existing open checkout session', {
-                userId: user.id,
-                customerId,
-                sessionId: reusableSession.id,
-                priceId,
-                includeTrial,
-            });
-
-            return {
-                kind: "checkout",
-                clientSecret: reusableSession.client_secret,
-            };
-        }
-
-        const returnUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/subscription/checkout-return?session_id={CHECKOUT_SESSION_ID}`;
-
-        console.log('🧾 Creating checkout session', {
-            userId: user.id,
-            priceId,
-            includeTrial,
-            returnUrl
-        });
-
-        const session = await stripe.checkout.sessions.create({
-            customer: customerId,
-            ui_mode: "embedded",
-            line_items: [
-                {
-                    price: priceId,
-                    quantity: 1,
-                },
-            ],
-            mode: "subscription",
-            allow_promotion_codes: true,
-            return_url: returnUrl,
-            client_reference_id: user.id,
-            metadata: checkoutMetadata,
-            // Require credit card upfront
-            payment_method_collection: 'always',
-            subscription_data: {
-                metadata: buildSubscriptionMetadata({
-                    userId: user.id,
-                    priceId,
-                    includeTrial,
-                }),
-                ...(includeTrial && {
-                    trial_period_days: 7,
-                }),
-            },
-        }, {
-            idempotencyKey: buildCheckoutIdempotencyKey({
-                userId: user.id,
-                priceId,
-                includeTrial,
-            }),
-        });
-
-        if (!session.client_secret) {
-            throw new Error('Failed to create Stripe session');
-        }
-
-        return {
-            kind: "checkout",
-            clientSecret: session.client_secret
-        };
-    } catch (error) {
-        console.error('Error creating checkout session:', error);
-        throw new Error(error instanceof Error ? error.message : 'Failed to create checkout session');
-    }
-}
-
-// Function to create a Stripe Portal Session
-export const createPortalSession = async () => {
-    'use server';
-    
-    // Check if user is authenticated
-    const { authenticated, user } = await checkAuth();
-    
-    if (!authenticated || !user?.id || !user?.email) {
-        throw new Error('User must be authenticated to access the billing portal');
-    }
-
-    try {
-        // Get or create Stripe customer
-        const customerId = await createOrRetrieveCustomer({
-            uuid: user.id,
-            email: user.email
-        });
-
-        const portalSession = await createBillingPortalSession(customerId);
-
-        return {
-            url: portalSession.url
-        };
-    } catch (error) {
-        console.error('Error creating portal session:', error);
-        throw new Error(error instanceof Error ? error.message : 'Failed to create portal session');
-    }
-}
+  return { url: portalSession.url };
+};

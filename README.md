@@ -1,352 +1,514 @@
-# ResumeLM - Free AI Resume Builder | Create ATS-Optimized Resumes in Minutes
+# AI Job Application Engine
 
-<div align="center">
+An AI-powered platform that generates tailored CVs and cover letters from a user's profile in under 60 seconds. Users buy credits and spend them per action — no subscriptions.
 
-![ResumeLM Logo](public/og.webp)
+Built with Next.js 15, Supabase, Stripe, and the Vercel AI SDK.
 
-**🚀 The AI-Powered Resume Builder That Gets You Hired**
+---
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-resumelm.com-blue?style=for-the-badge)](https://resumelm.com)
-[![GitHub Stars](https://img.shields.io/github/stars/olyaiy/resume-lm?style=for-the-badge)](https://github.com/olyaiy/resume-lm/stargazers)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+## Table of Contents
 
-</div>
+1. [Local Development](#1-local-development)
+2. [Deploy on Vercel](#2-deploy-on-vercel)
+3. [Deploy on Any Other Infrastructure](#3-deploy-on-any-other-infrastructure)
+4. [Database Setup](#4-database-setup)
+5. [Stripe Setup](#5-stripe-setup)
+6. [Environment Variables Reference](#6-environment-variables-reference)
+7. [Testing](#7-testing)
 
-## 📊 Proven Results That Matter
+---
 
-<div align="center">
-
-| 📈 **500+ Resumes Created** | 🎯 **89% Interview Rate** | ⭐ **4.9/5 User Rating** | ⏱️ **15 min Setup Time** |
-|:---------------------------:|:-------------------------:|:------------------------:|:-------------------------:|
-| Professional resumes built | Higher interview success  | Excellent user satisfaction | Quick and easy setup |
-
-</div>
-
-## 🎯 Why Choose ResumeLM?
-
-**ResumeLM** is a free, open-source AI resume builder that helps job seekers create professional, ATS-optimized resumes that increase interview chances by up to **3x**. Our intelligent platform combines cutting-edge AI technology with proven resume best practices to help you land your dream job.
-
-## ✨ Key Features & Screenshots
-
-### 🤖 AI-Powered Resume Assistant
-![AI Resume Assistant](public/SS%20Chat.png)
-
-**90% More Effective Bullet Points**
-- Smart content suggestions based on your experience
-- Real-time feedback on your resume content
-- Industry-specific optimization for better results
-- ATS-friendly formatting and keyword optimization
-
-### 📊 Beautiful Resume Dashboard
-![Resume Dashboard](public/Dashboard%20Image.png)
-
-**Organize Your Entire Job Search**
-- Centralized resume management system
-- Create base resumes and tailored versions
-
-### 📈 Resume Performance Scoring
-![Resume Scoring](public/SS%20Score.png)
-
-**3x Higher Response Rates**
-- ATS compatibility scoring and analysis
-- Keyword optimization insights
-- Detailed improvement recommendations
-- Performance metrics and analytics
-
-### 📝 AI Cover Letter Generator
-![Cover Letter Generator](public/SS%20Cover%20Letter.png)
-
-**Save 30+ Minutes Per Application**
-- Tailored to match specific job requirements
-- Professional tone and structure
-- Highlights your relevant achievements
-- Personalized for each opportunity
-
-## 🚀 Live Demo & Getting Started
-
-**[Try ResumeLM Now - 100% Free](https://resumelm.com)**
-
-No credit card required • No signup fees • Open source
-
-## 🛠️ Complete Tech Stack
-
-### Frontend & UI
-- **Next.js 15** - App Router with React Server Components
-- **React 19** - Latest React features and optimizations
-- **TypeScript** - Type-safe development
-- **Shadcn UI** - Beautiful, accessible components
-- **Tailwind CSS** - Utility-first styling
-- **Framer Motion** - Smooth animations
-
-### AI & Intelligence
-- **OpenAI GPT** - Advanced content generation
-- **Claude AI** - Alternative AI model support
-- **Gemini AI** - Google's AI integration
-- **DeepSeek** - Cost-effective AI processing
-- **Groq** - High-speed AI inference
-
-### Backend & Database
-- **PostgreSQL** - Robust relational database
-- **Supabase** - Backend-as-a-Service with auth
-- **Row Level Security** - Enterprise-grade security
-
-### Additional Features
-- **React PDF** - Professional PDF generation
-- **Stripe Integration** - Secure payment processing
-- **Real-time Updates** - Live preview and editing
-- **Mobile Responsive** - Works on all devices
-
-## 📱 Mobile-First Design
-
-ResumeLM is built with a mobile-first approach, ensuring your resume building experience is seamless across all devices:
-
-- 📱 **Mobile Optimized** - Full functionality on smartphones
-- 💻 **Desktop Enhanced** - Rich editing experience on larger screens
-- 🎨 **Responsive Design** - Adapts to any screen size
-- ⚡ **Fast Loading** - Optimized for performance
-
-## 🎨 Modern Design System
-
-### Visual Design Principles
-- **Layered Depth** - Multiple translucent layers create visual hierarchy
-- **Organic Motion** - Subtle animations suggest liveliness without distraction
-- **Purposeful White Space** - Generous spacing improves content digestion
-- **Consistent Interaction** - Predictable hover and active states
-- **Gradient Aesthetics** - Soft, professional color schemes
-
-## 🔧 Installation & Setup
+## 1. Local Development
 
 ### Prerequisites
-- Node.js 18+ 
-- pnpm (recommended) or npm
-- PostgreSQL database
-- Supabase account
 
-### Quick Start
+- Node.js 18+
+- pnpm (`npm install -g pnpm`)
+- A Supabase project (cloud or local Docker)
+- At least one AI provider API key
 
-1. **Clone the repository**
+### Steps
+
+**1. Clone and install**
 ```bash
-git clone https://github.com/olyaiy/resume-lm.git
-cd resume-lm
-```
-
-2. **Install dependencies**
-```bash
+git clone https://github.com/TheKnownGunman/skill-portal.git
+cd skill-portal
 pnpm install
 ```
 
-3. **Environment setup**
+**2. Set up environment variables**
 ```bash
 cp .env.example .env.local
 ```
+Fill in `.env.local` — see [Environment Variables Reference](#6-environment-variables-reference).
 
-4. **Configure environment variables**
-```env
-# Database
-DATABASE_URL=your_postgresql_url
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
+**3. Set up the database**
 
-# AI Services
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_claude_key
-GOOGLE_AI_API_KEY=your_gemini_key
+Run `scripts/setup.sql` in your Supabase SQL editor (see [Database Setup](#4-database-setup)).
 
-# Authentication
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_secret_key
-
-# Payments (Optional)
-STRIPE_SECRET_KEY=your_stripe_secret
-STRIPE_PUBLISHABLE_KEY=your_stripe_public
-```
-
-5. **Database setup**
-```bash
-# Run the schema.sql file in your Supabase SQL editor
-# Or use the Supabase CLI:
-supabase db push --db-url=your_supabase_db_url schema.sql
-```
-
-6. **Start development server**
+**4. Start the dev server**
 ```bash
 pnpm dev
 ```
 
-Visit `http://localhost:3000` to see your local ResumeLM instance!
+App runs at `http://localhost:3000`.
 
-### 🐳 Docker Setup (Alternative)
+---
 
-Run the complete stack locally with Docker Compose - includes Supabase, PostgreSQL, Redis, and all services:
+### Option B — Full local stack with Docker
+
+Runs Supabase, PostgreSQL, and Redis locally. No cloud accounts needed for development.
 
 ```bash
-# 1. Copy environment file and add your AI API key
+# 1. Copy env file and add at least one AI key
 cp .env.example .env.local
-# Edit .env.local and add at least one: OPENAI_API_KEY, ANTHROPIC_API_KEY, or OPENROUTER_API_KEY
 
-# 2. Start Docker services
+# 2. Start all services
 cd docker
 docker compose --env-file ../.env.local up -d
 
-# 3. Wait for services to be healthy (~60 seconds)
+# 3. Wait ~60 seconds for services to be healthy, then verify
 docker compose --env-file ../.env.local ps
 
-# 4. Run the app locally (from project root)
+# 4. Start the Next.js app from the project root
 cd ..
 pnpm dev
 ```
 
-**Login:** http://localhost:3000 with `admin@admin.com` / `Admin123` (Pro subscription auto-granted)
+**Default admin login:** `admin@admin.com` / `Admin123` (Pro auto-granted in Docker mode)
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **App** | http://localhost:3000 | Next.js application |
-| **Supabase API** | http://localhost:54321 | API Gateway |
-| **Supabase Studio** | http://localhost:54323 | Database dashboard |
-| **Redis Commander** | http://localhost:8081 | Redis management UI |
+| Service | URL |
+|---|---|
+| App | http://localhost:3000 |
+| Supabase Studio | http://localhost:54323 |
+| Supabase API | http://localhost:54321 |
+| Redis UI | http://localhost:8081 |
 
-> 📖 See [docker/DOCKER.md](docker/DOCKER.md) for full Docker documentation including full-stack mode.
-
-## 📊 Database Architecture
-
-### Core Tables Structure
-
-#### Profiles Table
-- Stores user's base information and resume components
-- JSON fields for complex data (work_experience, education, skills)
-- One-to-one relationship with auth.users
-
-#### Resumes Table
-- Base and tailored resume versions
-- Links to jobs for targeted applications
-- JSONB for section_order and section_configs
-- Version control and tracking
-
-#### Jobs Table
-- Job listings with requirements and details
-- Salary range as flexible JSONB structure
-- Application status tracking
-
-### Security Features
-- **Row Level Security (RLS)** - Users only access their own data
-- **Authentication Integration** - Secure user management
-- **Data Encryption** - Sensitive information protection
-
-## 🌟 Key Benefits for Job Seekers
-
-### For Individual Users
-- ✅ **Free Forever** - Core features always free
-- ✅ **No Hidden Costs** - Transparent pricing
-- ✅ **ATS Optimization** - Beat applicant tracking systems
-- ✅ **Multiple Formats** - PDF, Word, and web formats
-- ✅ **Industry Templates** - Tailored for different fields
-
-### For Developers
-- ✅ **Open Source** - Full access to source code
-- ✅ **Modern Stack** - Latest technologies and best practices
-- ✅ **Extensible** - Easy to customize and extend
-- ✅ **Well Documented** - Comprehensive documentation
-- ✅ **Active Community** - Regular updates and support
-
-## 🎯 SEO Keywords & Use Cases
-
-**Primary Keywords:** AI resume builder, free resume maker, ATS-optimized resume, professional resume template, job application tool
-
-**Use Cases:**
-- Recent graduates entering the job market
-- Career changers looking to pivot industries
-- Professionals seeking advancement opportunities
-- Freelancers building their personal brand
-- Anyone wanting to improve their resume quality
-
-## 📈 Performance & Analytics
-
-### Core Metrics
-- **Page Load Speed** - Under 2 seconds average
-- **Mobile Performance** - 95+ Lighthouse score
-- **SEO Optimization** - Structured data and meta tags
-- **Accessibility** - WCAG 2.1 AA compliant
-
-### User Success Stories
-- 89% of users report getting more interview calls
-- Average setup time reduced to just 15 minutes
-- 4.9/5 star rating from active users
-- 500+ professional resumes created monthly
-
-## 🔮 Roadmap & Future Features
-
-### Short Term (Q1 2025)
-- [ ] Enhanced AI tailoring algorithms
-- [ ] Additional resume templates and themes
-- [ ] Advanced PDF customization options
-- [ ] Job application tracking system
-
-### Long Term (2025)
-- [ ] LinkedIn integration and sync
-- [ ] Interview preparation tools
-- [ ] Salary negotiation guidance
-- [ ] Career path recommendations
-- [ ] Mobile app development
-
-## 🤝 Contributing
-
-We welcome contributions from developers of all skill levels! Here's how you can help:
-
-### Ways to Contribute
-- 🐛 **Bug Reports** - Help us identify and fix issues
-- 💡 **Feature Requests** - Suggest new functionality
-- 🔧 **Code Contributions** - Submit pull requests
-- 📚 **Documentation** - Improve our guides and docs
-- 🎨 **Design** - Enhance UI/UX elements
-
-### Development Process
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📞 Support & Community
-
-### Get Help
-- 📧 **Email Support** - Contact us for technical issues
-- 💬 **GitHub Discussions** - Community Q&A and feature requests
-- 🐛 **Issue Tracker** - Report bugs and technical problems
-- 📖 **Documentation** - Comprehensive guides and tutorials
-
-### Stay Updated
-- ⭐ **Star this repo** - Get notified of new releases
-- 👀 **Watch releases** - Stay informed about updates
-- 🐦 **Follow on social media** - Latest news and tips
-
-## 📄 License & Legal
-
-**GNU Affero General Public License v3 (AGPL-3.0)**
-
-### License Summary
-- ✅ **Commercial Use** - Use in commercial projects
-- ✅ **Modification** - Modify and distribute changes
-- ✅ **Distribution** - Share the software freely
-- ✅ **Patent Use** - Use any patents in the software
-- ❗ **Disclose Source** - Must provide source code
-- ❗ **License Notice** - Include license and copyright notice
-- ❗ **Network Use** - Network use is considered distribution
-- ❗ **Same License** - Derivative works must use same license
-
-### Commercial Licensing
-For businesses requiring proprietary licenses or commercial support, please contact us for custom licensing arrangements.
-
+**To test Stripe webhooks locally:**
+```bash
+# Install the Stripe CLI, then:
+stripe login
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+# Copy the whsec_... it prints and add it to .env.local as STRIPE_WEBHOOK_SECRET
+```
 
 ---
 
-<div align="center">
+## 2. Deploy on Vercel
 
-**Ready to land your dream job?**
+### Step 1 — Connect repository
 
-[![Get Started Free](https://img.shields.io/badge/🚀_Get_Started_Free-resumelm.com-blue?style=for-the-badge&color=6366f1)](https://resumelm.com)
-[![View Source Code](https://img.shields.io/badge/📚_View_Source-GitHub-black?style=for-the-badge&logo=github)](https://github.com/olyaiy/resume-lm)
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import your GitHub repository
+3. Framework preset: **Next.js** (auto-detected)
+4. Leave build settings as default — do not change them
 
-**Built with ❤️ using Next.js**
+### Step 2 — Set environment variables
 
-</div>
+In Vercel → **Settings** → **Environment Variables**, add every variable from the [reference table](#6-environment-variables-reference) below. Set each one for **Production**, **Preview**, and **Development**.
+
+Critical ones that must be correct before the first deploy:
+
+| Variable | Where to get it |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → Data API → **Project URL** (no trailing slash, no `/rest/v1`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API Keys → **anon / public** |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API Keys → **service_role** (click reveal) |
+| `NEXT_PUBLIC_SITE_URL` | Your Vercel domain e.g. `https://your-app.vercel.app` |
+
+### Step 3 — Set up the database
+
+Run `scripts/setup.sql` in the Supabase SQL editor **before** the first deploy. See [Database Setup](#4-database-setup).
+
+### Step 4 — Deploy
+
+Click **Deploy**. Vercel builds and deploys automatically.
+
+Every future push to `main` triggers a new production deployment automatically.
+
+### Step 5 — Register the Stripe webhook
+
+After the first deploy, go to the Stripe dashboard → **Developers** → **Webhooks** → **Add endpoint**:
+- URL: `https://your-app.vercel.app/api/webhooks/stripe`
+- Events: `checkout.session.completed`, `payment_intent.payment_failed`, `customer.subscription.deleted`, `customer.deleted`, `invoice.paid`
+
+Copy the **Signing secret** (`whsec_...`) and add it to Vercel as `STRIPE_WEBHOOK_SECRET`, then redeploy.
+
+### Vercel plan recommendation
+
+| Traffic | Plan needed |
+|---|---|
+| 0–100 users | Hobby (free) — fine for early testing |
+| 100+ users | **Pro ($20/month)** — required for 60s function timeout (AI calls can take 15–30s) |
+
+---
+
+## 3. Deploy on Any Other Infrastructure
+
+The app is a standard Next.js application. It runs anywhere Node.js runs. The only Vercel-specific thing is the serverless function timeout — set it manually on other platforms.
+
+### Railway
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+railway login
+
+# Create project and link
+railway init
+railway link
+
+# Set environment variables (one at a time or via dashboard)
+railway variables set NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+# ... repeat for all variables
+
+# Deploy
+railway up
+```
+
+Set the **start command** to `pnpm start` and the **build command** to `pnpm build`.
+
+### Render
+
+1. New Web Service → connect GitHub repo
+2. Build command: `pnpm install && pnpm build`
+3. Start command: `pnpm start`
+4. Add all environment variables in the **Environment** tab
+5. Set instance type to at least **Standard** (512 MB RAM minimum for Next.js build)
+
+### Self-hosted VPS (Ubuntu/Debian)
+
+```bash
+# 1. Install Node.js 18+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+npm install -g pnpm pm2
+
+# 2. Clone and build
+git clone https://github.com/TheKnownGunman/skill-portal.git
+cd skill-portal
+pnpm install
+cp .env.example .env.local
+# Fill in .env.local with all variables
+
+pnpm build
+
+# 3. Start with PM2 (keeps the process alive)
+pm2 start "pnpm start" --name skill-portal
+pm2 save
+pm2 startup
+
+# 4. Set up Nginx reverse proxy (port 3000 → 80/443)
+# 5. Add SSL via Certbot: sudo certbot --nginx
+```
+
+### Moving between platforms
+
+The app has no platform lock-in. To move:
+1. Export env vars from old platform
+2. Import env vars to new platform
+3. Run `scripts/setup.sql` on the new database if switching databases
+4. Point your domain DNS to the new platform
+5. Update `NEXT_PUBLIC_SITE_URL` to the new domain
+6. Update the Stripe webhook URL to the new domain
+
+The database (Supabase) is independent of the hosting platform — you can switch hosting without touching the database.
+
+---
+
+## 4. Database Setup
+
+### Fresh install (any platform)
+
+Run `scripts/setup.sql` in your database SQL console. This single script creates all tables, indexes, RLS policies, and the credit system.
+
+**Supabase cloud:**
+1. Go to your Supabase project → **SQL Editor** → **New query**
+2. Paste the entire contents of `scripts/setup.sql`
+3. Click **Run**
+
+**Any PostgreSQL (psql):**
+```bash
+psql -h <host> -U <user> -d <database> -f scripts/setup.sql
+```
+
+**Railway / Neon / Render PostgreSQL:**
+Paste `scripts/setup.sql` into their SQL console.
+
+### What the setup script creates
+
+| Object | Purpose |
+|---|---|
+| `profiles` | User career data — source of truth for CV generation |
+| `resumes` | Generated CVs (base and tailored) |
+| `jobs` | Job descriptions users paste in |
+| `subscriptions` | Legacy billing table (kept for backward compat) |
+| `stripe_webhook_events` | Idempotency — prevents duplicate webhook processing |
+| `ai_usage_events` | Every AI request: provider, model, tokens, status |
+| `credit_ledger` | Every credit transaction (purchases, spends, refunds) |
+| `credit_balance` view | `SELECT balance FROM credit_balance WHERE user_id = ?` |
+| `grant_welcome_credits()` | Trigger function: awards 50 credits on profile creation |
+
+### Migrations (for existing installs)
+
+If the base schema already exists and you only need to add the credit system:
+
+```bash
+# Run just the credit ledger migration
+psql -h <host> -U <user> -d <database> -f supabase/migrations/20260520000001_create_credit_ledger.sql
+```
+
+Migrations are stored in `supabase/migrations/` in chronological order. Run them in filename order on any fresh instance.
+
+---
+
+## 5. Stripe Setup
+
+### Create credit bundle products
+
+In the Stripe dashboard → **Products** → **Add product**:
+
+Create one product called **"Credits"** with three prices:
+
+| Price | Amount | Type | Env var |
+|---|---|---|---|
+| Starter | $9.00 | One time | `NEXT_PUBLIC_STRIPE_CREDITS_STARTER` |
+| Standard | $19.00 | One time | `NEXT_PUBLIC_STRIPE_CREDITS_STANDARD` |
+| Pro | $49.00 | One time | `NEXT_PUBLIC_STRIPE_CREDITS_PRO` |
+
+Copy each **Price ID** (`price_xxx`) into the corresponding env var.
+
+### Register the webhook
+
+Stripe dashboard → **Developers** → **Webhooks** → **Add endpoint**:
+
+- **Endpoint URL:** `https://your-domain.com/api/webhooks/stripe`
+- **Events to listen for:**
+  - `checkout.session.completed` ← critical for crediting users after purchase
+  - `payment_intent.payment_failed`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.paid`
+  - `customer.deleted`
+
+Copy the **Signing secret** (`whsec_...`) → add as `STRIPE_WEBHOOK_SECRET`.
+
+### Test mode vs live mode
+
+Use `sk_test_` and `pk_test_` keys during development. Switch to `sk_live_` and `pk_live_` only when going to production. Create a separate webhook endpoint for each environment.
+
+---
+
+## 6. Environment Variables Reference
+
+Copy `.env.example` to `.env.local` for local development. Add these to Vercel (or your platform) for production.
+
+### Required — app will not start without these
+
+```env
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+### Required — at least one AI provider
+
+```env
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+OPENROUTER_API_KEY=sk-or-...
+```
+
+### Required — Stripe (credit purchases)
+
+```env
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+
+NEXT_PUBLIC_STRIPE_CREDITS_STARTER=price_...
+NEXT_PUBLIC_STRIPE_CREDITS_STANDARD=price_...
+NEXT_PUBLIC_STRIPE_CREDITS_PRO=price_...
+
+NEXT_PUBLIC_CREDITS_STARTER_AMOUNT=50
+NEXT_PUBLIC_CREDITS_STANDARD_AMOUNT=150
+NEXT_PUBLIC_CREDITS_PRO_AMOUNT=500
+```
+
+### Required — rate limiting
+
+```env
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=...
+```
+
+### Optional — analytics
+
+```env
+NEXT_PUBLIC_POSTHOG_KEY=phc_...
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+POSTHOG_PROJECT_API_KEY=phc_...
+```
+
+### Local Docker only
+
+```env
+USE_LOCAL_REDIS=true
+REDIS_URL=redis://localhost:6379
+AUTO_PRO_SUBSCRIPTION=true
+```
+
+---
+
+## 7. Testing
+
+### Run the test suite
+
+```bash
+pnpm test
+```
+
+Runs all `*.test.ts` files under `src/` using Node.js's built-in test runner via `tsx`. No Jest or Vitest — no additional setup needed.
+
+### Run type checking
+
+```bash
+pnpm typecheck
+```
+
+### What is tested
+
+All current tests are **pure unit tests** — no database or network calls. They run instantly.
+
+| File | What it covers |
+|---|---|
+| `src/lib/stripe/checkout-guard.test.ts` | Idempotency key generation, session metadata matching |
+| `src/lib/stripe/subscription-sync.test.ts` | Stripe status → app subscription state mapping |
+| `src/utils/actions/stripe/actions.safety.test.ts` | Security: asserts dangerous self-service plan toggle functions do not exist |
+| `src/lib/subscription-access.test.ts` | Trial windows, cancellation windows, access expiry logic |
+| `src/lib/auth-policy.test.ts` | Auth rules |
+| `src/lib/ai/access-control.test.ts` | Model access by user plan |
+| `src/lib/ai/usage-ledger.test.ts` | AI usage event recording |
+| `src/lib/ai/posthog-telemetry.test.ts` | Analytics event properties |
+| `src/lib/ai/task-models.test.ts` | AI model selection |
+| `src/lib/analytics/events.test.ts` | Analytics event name constants |
+
+### Writing a new test
+
+Tests use only Node.js built-ins — no imports from external test libraries needed.
+
+```typescript
+// src/lib/stripe/credit-bundles.test.ts
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import { CREDIT_COSTS } from './credit-bundles'
+
+describe('CREDIT_COSTS', () => {
+  it('charges more for a tailored resume than a chat message', () => {
+    assert.ok(CREDIT_COSTS.TAILORED_RESUME > CREDIT_COSTS.AI_CHAT_MESSAGE)
+  })
+})
+```
+
+Run a single file:
+```bash
+node --import tsx/esm --test src/lib/stripe/credit-bundles.test.ts
+```
+
+### Testing the credit system
+
+The credit actions (`src/utils/actions/credits/actions.ts`) require a database connection to test fully. For unit testing the logic in isolation, mock the Supabase client:
+
+```typescript
+import assert from 'node:assert/strict'
+import { describe, it, mock } from 'node:test'
+
+describe('deductCredits', () => {
+  it('returns insufficient_credits when balance is too low', async () => {
+    // Mock the supabase client to return a known balance
+    // then assert deductCredits returns { success: false }
+  })
+})
+```
+
+For integration tests against a real database, use the local Docker stack and a dedicated test user.
+
+### Security tests
+
+Follow the pattern in `actions.safety.test.ts` — read the source file as a string and assert that dangerous patterns do not exist:
+
+```typescript
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { describe, it } from 'node:test'
+
+const source = readFileSync('src/utils/actions/credits/actions.ts', 'utf8')
+
+describe('credit actions safety', () => {
+  it('does not allow direct balance override', () => {
+    assert.equal(source.includes('setBalance'), false)
+    assert.equal(source.includes('amount: userInput'), false)
+  })
+})
+```
+
+### CI (GitHub Actions)
+
+To run tests automatically on every push, create `.github/workflows/test.yml`:
+
+```yaml
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm test
+      - run: pnpm typecheck
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript (strict mode) |
+| Database | PostgreSQL via Supabase |
+| Auth | Supabase Auth |
+| AI | Vercel AI SDK (OpenAI, Anthropic, Google, DeepSeek, Groq) |
+| Payments | Stripe (one-time credit purchases) |
+| Rate limiting | Upstash Redis |
+| PDF generation | React PDF |
+| Rich text | TipTap |
+| UI | Shadcn UI + Tailwind CSS |
+| Analytics | PostHog |
+
+## Project Documentation
+
+Detailed system documentation lives in the `docs/` folder:
+
+| File | Contents |
+|---|---|
+| `docs/01-monetisation.md` | Credits system design, Stripe integration |
+| `docs/02-resume-creation.md` | CV generation flow, data structure |
+| `docs/03-profiles.md` | Profile model, onboarding |
+| `docs/04-token-usage-monitoring.md` | AI cost tracking |
+| `docs/05-ui-redesign.md` | How to rebrand or redesign |
+| `docs/06-scalability.md` | Infrastructure limits, scaling checklist |
+| `docs/07-product-plan.md` | User stories, feature priorities |
+
+Implementation change logs are in `ai_implementations/`.
